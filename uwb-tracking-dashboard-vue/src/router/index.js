@@ -1,59 +1,34 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import { auth } from '../main.js'; 
-import RegisterPage from '../views/RegisterPage.vue';
-import LoginPage from '../views/LoginPage.vue';
-import DashboardPage from '../views/DashboardPage.vue';
+// src/router/index.js
+import { createRouter, createWebHistory } from "vue-router";
+import Login from "../views/LoginPage.vue";
+import Register from "../views/RegisterPage.vue";
+import Dashboard from "../views/DashboardPage.vue";
 
 const routes = [
-  {
-    path: '/register',
-    name: 'Register',
-    component: RegisterPage
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: LoginPage
-  },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: DashboardPage,
-    meta: { requiresAuth: true } 
-  },
-  
-  {
-    path: '/:catchAll(.*)', 
-    redirect: to => {
-      if (auth.currentUser) {
-        return { name: 'Dashboard' };
-      } else {
-        return { name: 'Login' };
-      }
-    }
-  }
+  { path: "/login", component: Login },
+  { path: "/register", component: Register },
+  { path: "/dashboard", component: Dashboard, meta: { requiresAuth: true } },
+  { path: "/", redirect: "/dashboard" },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 });
 
-router.beforeEach(async (to, from, next) => {
-  const requiresAuth = to.meta.requiresAuth;
-  await new Promise(resolve => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      unsubscribe();
-    });
-  });
+// Navigation guard เพื่อปกป้องเส้นทางแดชบอร์ด
+import { auth } from "@/firebase/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
-  if (requiresAuth && !currentUser) {
-    next({ name: 'Login' });
-  } else if ((to.name === 'Login' || to.name === 'Register') && currentUser) {
-    next({ name: 'Dashboard' });
-  } else {
-    next();
-  }
+router.beforeEach((to, from, next) => {
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  onAuthStateChanged(auth, (user) => {
+    if (requiresAuth && !user) {
+      next("/login");
+    } else {
+      next();
+    }
+  });
 });
 
 export default router;
