@@ -277,3 +277,41 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.register-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.icon {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.header h2 {
+  color: #4285f4;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+</style>
