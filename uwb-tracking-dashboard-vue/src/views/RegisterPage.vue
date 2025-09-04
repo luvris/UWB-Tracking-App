@@ -32,6 +32,7 @@
               type="email"
               placeholder="Enter your email"
               required
+              autocomplete="email"
             />
           </div>
           <div class="form-group">
@@ -41,6 +42,7 @@
               type="password"
               placeholder="Enter your password"
               required
+              @input="validatePassword"
             />
           </div>
         </div>
@@ -53,6 +55,7 @@
               type="text"
               placeholder="Enter your full name"
               required
+              @input="validateFullName"
             />
           </div>
           <div class="form-group">
@@ -80,6 +83,7 @@
               placeholder="Enter your age"
               min="1"
               max="120"
+              @input="validateAge"
             />
           </div>
           <div class="form-group">
@@ -102,6 +106,7 @@
               placeholder="Enter height in cm"
               min="50"
               max="300"
+              @input="validateHeight"
             />
           </div>
           <div class="form-group">
@@ -112,6 +117,7 @@
               placeholder="Enter weight in kg"
               min="20"
               max="300"
+              @input="validateWeight"
             />
           </div>
         </div>
@@ -131,6 +137,8 @@
               v-model="idCard"
               type="text"
               placeholder="Enter ID card number"
+              maxlength="13"
+              @input="validateIdCard"
             />
           </div>
         </div>
@@ -169,6 +177,7 @@
                 v-model="pinkCardNumber"
                 type="text"
                 placeholder="Enter pink card number"
+                @input="validatePinkCard"
               />
             </div>
           </div>
@@ -180,6 +189,7 @@
                 v-model="passportNumber"
                 type="text"
                 placeholder="Enter passport number"
+                @input="validatePassport"
               />
             </div>
             <div class="form-group">
@@ -274,6 +284,65 @@ export default {
         alert("Register failed:" + error.message);
       }
     },
+
+    validatePassword() {
+      const password = this.password;
+
+      this.passwordError = "";
+
+      if (password.length < 6) {
+        this.passwordError = "Password must be at least 6 characters long.";
+        return;
+      }
+
+      if (!/[A-Z]/.test(password)) {
+        this.passwordError =
+          "Password must contain at least one uppercase letter (A-Z).";
+        return;
+      }
+
+      this.passwordError = "";
+    },
+
+    validateFullName() {
+      this.fullName = this.fullName.replace(/[0-9]/g, "");
+    },
+
+    validateAge(event) {
+      const value = event.target.value;
+      if (value && (value < 1 || value > 120)) {
+        this.age = value < 1 ? 1 : 120;
+        event.target.value = this.age;
+      }
+    },
+
+    validateHeight(event) {
+      const value = event.target.value;
+      if (value && (value < 1 || value > 300)) {
+        this.height = value < 50 ? 50 : 300;
+        event.target.value = this.height;
+      }
+    },
+
+    validateWeight(event) {
+      const value = event.target.value;
+      if (value && (value < 1 || value > 300)) {
+        this.weight = value < 5 ? 5 : 300;
+        event.target.value = this.weight;
+      }
+    },
+
+    validateIdCard() {
+      this.idCard = this.idCard.replace(/[^0-9]/g, "").slice(0, 13);
+    },
+
+    validatePinkCard() {
+      this.pinkCardNumber = this.pinkCardNumber.replace(/[^0-9]/g, "");
+    },
+
+    validatePassport() {
+      this.passportNumber = this.passportNumber.replace(/[^A-Za-z0-9]/g, "");
+    },
   },
 };
 </script>
@@ -336,6 +405,7 @@ export default {
   color: #374151;
   margin-bottom: 6px;
   font-size: 14px;
+  text-align: left;
 }
 
 .form-group input,
