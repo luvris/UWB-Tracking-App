@@ -6,13 +6,7 @@
         <div
           class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-4"
         >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
               d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
               fill="#4285F4"
@@ -85,8 +79,8 @@
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
             >
               <option value="">Select your role</option>
-              <option value="rescuer">Rescuer (กู้ภัย)</option>
-              <option value="user">User (ผู้ใช้ทั่วไป)</option>
+              <option value="rescuer">Rescuer</option>
+              <option value="user">User</option>
             </select>
           </div>
         </div>
@@ -339,7 +333,7 @@
             <span class="font-medium">Weight:</span> {{ weight }} Kg.
           </p>
           <p v-if="relativeContactNumber">
-            <span class="font-medium">relativeContactNumber:</span>
+            <span class="font-medium">Contact Number:</span>
             {{ relativeContactNumber }}
           </p>
           <p v-if="!foreignWorker && idCard">
@@ -353,10 +347,9 @@
             <span class="font-medium">Foreign Worker:</span>
             {{ foreignWorker ? "Yes" : "No" }}
           </p>
-
           <template v-if="foreignWorker">
             <p v-if="national">
-              <span class="font-medium">National:</span> {{ national }}
+              <span class="font-medium">Nationality:</span> {{ national }}
             </p>
             <p v-if="pinkCardNumber">
               <span class="font-medium">Pink Card Number:</span>
@@ -413,7 +406,6 @@ export default {
       idCard: "",
       allergiesMedicalConditions: "",
       foreignWorker: false,
-      // Foreign Worker additional fields
       national: "",
       pinkCardNumber: "",
       passportNumber: "",
@@ -444,8 +436,8 @@ export default {
         );
         const user = userCredential.user;
 
-        // บันทึกข้อมูลผู้สมัคร
         const userData = {
+          email: this.username,
           fullName: this.fullName,
           role: this.role,
           bloodGroup: this.bloodGroup,
@@ -460,7 +452,6 @@ export default {
           createdAt: new Date().toISOString(),
         };
 
-        // Add foreign worker fields if applicable
         if (this.foreignWorker) {
           userData.national = this.national;
           userData.pinkCardNumber = this.pinkCardNumber;
@@ -468,9 +459,10 @@ export default {
           userData.company = this.company;
         }
 
+        // บันทึกข้อมูลผู้ใช้ (ไม่มี device)
         await set(ref(database, "users/" + user.uid), userData);
 
-        alert("Register Sucessful! Now you can login");
+        alert("Register Successful! Now you can login");
         this.$router.push("/login");
       } catch (error) {
         console.error("Register failed:", error.message);
@@ -491,15 +483,15 @@ export default {
     },
     validateHeight(event) {
       const value = event.target.value;
-      if (value && (value < 50 || value > 300)) {
-        this.height = value < 50 ? 50 : 300;
+      if (value && (value < 1 || value > 300)) {
+        this.height = value < 1 ? 1 : 300;
         event.target.value = this.height;
       }
     },
     validateWeight(event) {
       const value = event.target.value;
-      if (value && (value < 20 || value > 300)) {
-        this.weight = value < 20 ? 20 : 300;
+      if (value && (value < 1 || value > 300)) {
+        this.weight = value < 1 ? 1 : 300;
         event.target.value = this.weight;
       }
     },
