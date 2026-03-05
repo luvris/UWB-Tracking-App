@@ -145,7 +145,8 @@
               {{ calculatedDistance.toFixed(2) }} m
             </div>
             <div class="text-[11px] text-slate-600">
-              Current position (Tag 2): X: {{ selectedTag2.x.toFixed(2) }} m, Y:
+              Current position (Tag 2): X:
+              {{ selectedTag2.x.toFixed(2) }} m, Y:
               {{ selectedTag2.y.toFixed(2) }} m
             </div>
             <button
@@ -184,37 +185,6 @@
           </div>
         </section>
 
-        <!-- Anchors -->
-        <section
-          class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm"
-        >
-          <h3 class="font-bold text-slate-800 mb-3 text-center text-sm">
-            Anchors (Reference Points)
-          </h3>
-          <div v-if="anchorDevices.length" class="space-y-2">
-            <article
-              v-for="anchor in anchorDevices"
-              :key="anchor.id"
-              class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 flex justify-between items-center"
-            >
-              <div>
-                <div class="font-semibold text-slate-800 text-xs">
-                  {{ anchor.name || "Anchor" }}
-                </div>
-                <div class="text-[11px] text-slate-500">{{ anchor.id }}</div>
-              </div>
-              <span
-                class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-semibold"
-              >
-                Online
-              </span>
-            </article>
-          </div>
-          <p v-else class="text-center text-slate-400 text-xs">
-            No anchors found
-          </p>
-        </section>
-
         <!-- Tags -->
         <section
           v-if="tagDevices.length"
@@ -245,8 +215,7 @@
                     </span>
                   </div>
                   <div class="text-[11px] text-slate-600 mt-1">
-                    Battery: {{ tag.battery ?? "-" }}% | Position: ({{ tag.x }},
-                    {{ tag.y }})
+                    Position: ({{ tag.x }}, {{ tag.y }})
                   </div>
                 </div>
                 <div class="flex flex-col gap-1">
@@ -314,6 +283,7 @@
                   <div class="text-[11px] text-slate-500 mb-1">
                     {{ getPairedDeviceName(u.id) }}
                   </div>
+
                   <div class="flex flex-wrap gap-1 mb-1.5">
                     <span
                       v-if="u.needHelp"
@@ -322,30 +292,66 @@
                       Need Help
                     </span>
                     <span
-                      v-if="u.batteryLow"
-                      class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-[11px] font-semibold"
+                      v-if="u.rescued"
+                      class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[11px] font-semibold"
                     >
-                      Battery Low
+                      Rescued
                     </span>
-                  </div>
-                  <div class="text-[11px] text-slate-400">
-                    Updated: Just now
                   </div>
                 </div>
 
-                <div v-if="isRescuer" class="flex flex-col gap-1">
-                  <button
-                    @click="showUserDetail(u)"
-                    class="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded font-semibold text-[11px] transition"
+                <div class="flex flex-col gap-1 items-end">
+                  <!-- ปุ่ม Details / Note เฉพาะ Rescuer -->
+                  <div v-if="isRescuer" class="flex flex-col gap-1">
+                    <button
+                      @click="showUserDetail(u)"
+                      class="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded font-semibold text-[11px] transition"
+                    >
+                      Details
+                    </button>
+                    <button
+                      @click="openTriageModal(u)"
+                      class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded font-semibold text-[11px] transition"
+                    >
+                      Note
+                    </button>
+                  </div>
+
+                  <!-- ปุ่ม toggle Need Help / Rescued เฉพาะ Rescuer ที่จัดการ Victim (role user) -->
+                  <div
+                    v-if="isRescuer && u.role === 'user' && isUserPaired(u.id)"
+                    class="flex flex-col gap-1 mt-2"
                   >
-                    Details
-                  </button>
-                  <button
-                    @click="openTriageModal(u)"
-                    class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded font-semibold text-[11px] transition"
-                  >
-                    Note
-                  </button>
+                    <button
+                      @click="toggleNeedHelp(u)"
+                      class="px-3 py-1 text-[11px] rounded font-semibold border"
+                      :disabled="u.rescued"
+                      :class="
+                        u.needHelp
+                          ? 'bg-red-500 border-red-600 text-white hover:bg-red-600'
+                          : u.rescued
+                          ? 'bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed'
+                          : 'bg-white border-red-400 text-red-700 hover:bg-red-50'
+                      "
+                    >
+                      {{ u.needHelp ? "Clear Need Help" : "Mark Need Help" }}
+                    </button>
+
+                    <button
+                      @click="toggleRescued(u)"
+                      class="px-3 py-1 text-[11px] rounded font-semibold border"
+                      :disabled="u.needHelp"
+                      :class="
+                        u.rescued
+                          ? 'bg-emerald-500 border-emerald-600 text-white hover:bg-emerald-600'
+                          : u.needHelp
+                          ? 'bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed'
+                          : 'bg-white border-emerald-400 text-emerald-700 hover:bg-emerald-50'
+                      "
+                    >
+                      {{ u.rescued ? "Clear Rescued" : "Mark Rescued" }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -376,7 +382,8 @@
             <div><strong>Age:</strong> {{ userDetail.age }}</div>
             <div><strong>Blood Group:</strong> {{ userDetail.bloodGroup }}</div>
             <div>
-              <strong>Contact:</strong> {{ userDetail.relativeContactNumber }}
+              <strong>Contact:</strong>
+              {{ userDetail.relativeContactNumber }}
             </div>
             <div class="text-red-600">
               <strong>Medical Conditions:</strong>
@@ -792,7 +799,6 @@ async function openProfileModal() {
       return;
     }
 
-    // preload users/<uid>
     const snap = await get(dbRef(database, `users/${uid}`));
     const u = snap.val() || {};
 
@@ -871,6 +877,7 @@ function fetchDevicesAndUsers() {
           id: key,
         }))
       : [];
+    renderMap();
   });
 }
 
@@ -944,23 +951,33 @@ function renderMap() {
       .attr("stroke", "#e5e7eb");
   }
 
-  // anchors reference
-  const anchors = [
-    { x: 0, y: 0, label: "A1 (0,0)" },
-    { x: 3, y: 0, label: "A2 (3,0)" },
-    { x: 0, y: 3, label: "A3 (0,3)" },
-  ];
+  // ANCHORS (A001(0,0) A002(0,3) A003(3,0))
+  anchorDevices.value.forEach((anchor) => {
+    let axMeter = 0;
+    let ayMeter = 0;
 
-  anchors.forEach((a) => {
-    const ax = offsetX + a.x * meterToPixel * scale;
-    const ay = offsetY - a.y * meterToPixel * scale;
+    if (anchor.id === "A001") {
+      axMeter = 0;
+      ayMeter = 0;
+    } else if (anchor.id === "A002") {
+      axMeter = 0;
+      ayMeter = 3;
+    } else if (anchor.id === "A003") {
+      axMeter = 3;
+      ayMeter = 0;
+    }
+
+    const ax = offsetX + axMeter * meterToPixel * scale;
+    const ay = offsetY - ayMeter * meterToPixel * scale;
+
+    const isOnline = anchor.online === true;
 
     g.append("rect")
       .attr("x", ax - 10)
       .attr("y", ay - 10)
       .attr("width", 20)
       .attr("height", 20)
-      .attr("fill", "#64748b")
+      .attr("fill", isOnline ? "#0095FF" : "#828282")
       .attr("rx", 4);
 
     g.append("text")
@@ -969,10 +986,10 @@ function renderMap() {
       .attr("text-anchor", "middle")
       .attr("font-size", "10px")
       .attr("fill", "#4b5563")
-      .text(a.label);
+      .text(anchor.name || anchor.id || "Anchor");
   });
 
-  // tags
+  // TAGS
   tagDevices.value.forEach((tag) => {
     const isOnline =
       tag.status?.A1 === "OK" &&
@@ -985,6 +1002,25 @@ function renderMap() {
     const isSelected =
       selectedTag1.value?.id === tag.id || selectedTag2.value?.id === tag.id;
 
+    let role = null;
+    let userObj = null;
+    if (tag.userId && usersById.value[tag.userId]) {
+      userObj = usersById.value[tag.userId];
+      role = userObj.role;
+    }
+
+    let roleColor = "#cbd5f5";
+    if (role === "rescuer") {
+      roleColor = "rgb(139, 92, 246)";
+    } else if (role === "user") {
+      roleColor = "#04BA1F";
+    }
+
+    const fillColor = isOnline ? roleColor : "#828282";
+
+    const needHelp = userObj?.needHelp === true;
+    const rescued = userObj?.rescued === true;
+
     const tagGroup = g
       .append("g")
       .style("cursor", "pointer")
@@ -995,9 +1031,41 @@ function renderMap() {
       .attr("cx", tx)
       .attr("cy", ty)
       .attr("r", isSelected ? 20 : 15)
-      .attr("fill", isOnline ? "#8b5cf6" : "#cbd5f5")
+      .attr("fill", fillColor)
       .attr("stroke", isSelected ? "#3b82f6" : "#ffffff")
       .attr("stroke-width", 3);
+
+    if (needHelp) {
+      tagGroup
+        .append("circle")
+        .attr("cx", tx)
+        .attr("cy", ty)
+        .attr("r", isSelected ? 24 : 19)
+        .attr("fill", "none")
+        .attr("stroke", "#f97316")
+        .attr("stroke-width", 3)
+        .attr("stroke-dasharray", "4,2");
+    }
+
+    if (rescued) {
+      const offset = isSelected ? 16 : 13;
+      tagGroup
+        .append("circle")
+        .attr("cx", tx + offset)
+        .attr("cy", ty + offset)
+        .attr("r", 8)
+        .attr("fill", "#22c55e");
+
+      tagGroup
+        .append("text")
+        .attr("x", tx + offset)
+        .attr("y", ty + offset + 1)
+        .attr("text-anchor", "middle")
+        .attr("fill", "white")
+        .attr("font-size", "9px")
+        .attr("font-weight", "bold")
+        .text("✓");
+    }
 
     tagGroup
       .append("text")
@@ -1007,7 +1075,15 @@ function renderMap() {
       .attr("fill", "white")
       .attr("font-weight", "bold")
       .attr("font-size", "12px")
-      .text(tag.name ? tag.name[0] : "T");
+      .text(
+        role === "rescuer"
+          ? "R"
+          : role === "user"
+          ? "U"
+          : tag.name
+          ? tag.name[0]
+          : "T"
+      );
   });
 }
 
@@ -1058,6 +1134,45 @@ onMounted(() => {
   fetchDevicesAndUsers();
   setupZoomBehavior();
 });
+
+async function toggleNeedHelp(user) {
+  try {
+    const userId = user.id;
+    const hasNeedHelp = !!user.needHelp;
+    const hasRescued = !!user.rescued;
+
+    let nextNeedHelp = !hasNeedHelp;
+    let nextRescued = false;
+
+    await update(dbRef(database), {
+      [`users/${userId}/needHelp`]: nextNeedHelp,
+      [`users/${userId}/rescued`]: nextRescued,
+    });
+  } catch (e) {
+    alert(`Toggle Need Help failed: ${e.message || e}`);
+  }
+}
+
+async function toggleRescued(user) {
+  try {
+    const userId = user.id;
+    const hasRescued = !!user.rescued;
+
+    let nextRescued = !hasRescued;
+    let nextNeedHelp = false;
+
+    await update(dbRef(database), {
+      [`users/${userId}/rescued`]: nextRescued,
+      [`users/${userId}/needHelp`]: nextNeedHelp,
+    });
+  } catch (e) {
+    alert(`Toggle Rescued failed: ${e.message || e}`);
+  }
+}
+
+const isUserPaired = (userId) => {
+  return devices.value.some((d) => d.userId === userId);
+};
 </script>
 
 <style scoped>
