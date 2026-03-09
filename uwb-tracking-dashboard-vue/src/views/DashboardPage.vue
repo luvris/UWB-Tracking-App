@@ -634,9 +634,6 @@ const router = useRouter();
 const userFilter = ref("all");
 const isRescuer = ref(false);
 
-const selectedTag1 = ref(null);
-const selectedTag2 = ref(null);
-
 const pairConfirmModal = ref({ show: false, device: null });
 const unpairConfirmModal = ref({ show: false, device: null });
 
@@ -698,16 +695,26 @@ const currentUserObj = computed(
 );
 
 // --- Distance selection ---
+const selectedTag1Id = ref(null);
+const selectedTag2Id = ref(null);
+
+const selectedTag1 = computed(
+  () => devices.value.find((d) => d.id === selectedTag1Id.value) || null
+);
+const selectedTag2 = computed(
+  () => devices.value.find((d) => d.id === selectedTag2Id.value) || null
+);
+
 function selectTagForDistance(tag) {
-  if (!selectedTag1.value) {
-    selectedTag1.value = tag;
-  } else if (selectedTag1.value.id === tag.id) {
-    selectedTag1.value = null;
-  } else if (!selectedTag2.value) {
-    selectedTag2.value = tag;
+  if (!selectedTag1Id.value) {
+    selectedTag1Id.value = tag.id;
+  } else if (selectedTag1Id.value === tag.id) {
+    selectedTag1Id.value = null;
+  } else if (!selectedTag2Id.value) {
+    selectedTag2Id.value = tag.id;
   } else {
-    selectedTag1.value = selectedTag2.value;
-    selectedTag2.value = tag;
+    selectedTag1Id.value = selectedTag2Id.value;
+    selectedTag2Id.value = tag.id;
   }
   renderMap();
 }
