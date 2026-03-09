@@ -967,11 +967,11 @@ function renderMap() {
       axMeter = 0;
       ayMeter = 0;
     } else if (anchor.id === "A002") {
-      axMeter = 0;
-      ayMeter = 3;
-    } else if (anchor.id === "A003") {
       axMeter = 3;
       ayMeter = 0;
+    } else if (anchor.id === "A003") {
+      axMeter = 0;
+      ayMeter = 3;
     }
 
     const ax = offsetX + axMeter * meterToPixel * scale;
